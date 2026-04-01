@@ -1,0 +1,63 @@
+@* Views/Shared/_PrintReport.cshtml *@
+<div id="securePrintArea" style="display:none;">
+    <div style="width: 210mm; height: 297mm; padding: 15mm; background: white; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif;">
+        <div style="border: 2px solid #292075; height: 100%; padding: 10mm; display: flex; flex-direction: column; box-sizing: border-box; position: relative;">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #292075; padding-bottom: 15px; margin-bottom: 30px;">
+                <img src="@Url.Content("~/Content/images/SBI.png")" style="height: 60px;" alt="SBI" />
+                <div style="text-align: right;">
+                    <h2 style="margin: 0; color: #292075; font-weight: 800;">FILE HASH REPORT</h2>
+                    <p style="margin: 0; font-size: 0.85rem; color: #666;">State Bank of India - Confidential</p>
+                </div>
+            </div>
+
+            <!-- Content Table -->
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; color: black; table-layout: fixed;">
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: bold; width: 35%; vertical-align: top;">Orignal File Name:</td>
+                    <td style="padding: 12px; word-break: break-all; overflow-wrap: break-word; white-space: normal; vertical-align: top;">
+                        @ViewBag.OrignalFileName
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: bold; width: 35%; vertical-align: top;">Generated File Name:</td>
+                    <td style="padding: 12px; word-break: break-all; overflow-wrap: break-word; white-space: normal; vertical-align: top;">
+                        @ViewBag.FileName
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: bold; vertical-align: top;">Branch Code:</td>
+                    <td style="padding: 12px; vertical-align: top;">@ViewBag.UploadBranch</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; font-weight: bold; vertical-align: top;">Security PassKey:</td>
+                    <td style="padding: 12px; vertical-align: top;">
+                        <span style="border: 1px solid black; padding: 4px 10px; font-family: monospace; font-weight: bold; background: #f9f9f9;">
+                            @ViewBag.PassKey
+                        </span>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="background: #f4f4f4; padding: 15px; border: 1px solid #ccc; margin-bottom: 30px;">
+                <strong style="font-size: 0.8rem;">FILE HASH VALUE:</strong><br />
+                <code style="word-break: break-all; font-size: 10pt; color: #292075;">@ViewBag.ResultHash</code>
+            </div>
+
+            <!-- Signature -->
+            <div style="margin-top: auto; display: flex; justify-content: flex-end; padding-bottom: 20px;">
+                <div style="text-align: center; width: 250px;">
+                    <div style="border-top: 1.5px solid black; margin-bottom: 5px;"></div>
+                    <p style="margin: 0; font-weight: bold;">Authorised Official Signature</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; font-size: 8pt; color: #888; border-top: 1px solid #eee; padding-top: 10px;">
+                TELLER ID: @(User.Identity.Name ?? "System") | PRINT REPORT Timestamp: @DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss")
+            </div>
+        </div>
+    </div>
+</div>
