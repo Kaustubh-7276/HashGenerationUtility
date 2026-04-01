@@ -1,0 +1,162 @@
+<Window x:Class="BancsHashGenrator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BancsHashGenrator"
+        xmlns:vm="clr-namespace:BancsHashGenrator.ViewModels" 
+        mc:Ignorable="d"
+        Title="Bancs Hash Generator" Height="750" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource YonoGradient}">
+
+    <Window.Resources>
+        <vm:StringToVisibilityConverter x:Key="StringToVis"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <vm:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+
+        <!-- 1. DATA TEMPLATE: FILE HASH GENERATION -->
+        <DataTemplate DataType="{x:Type vm:SingleHashViewModel}">
+            <Grid Margin="35,20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Form Fields - Frozen when ResultHash exists -->
+                        <StackPanel IsEnabled="{Binding CanInput}">
+                            <TextBlock Text="1. Upload Category" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" 
+                                      DisplayMemberPath="DisplayName" Height="40" Margin="0,0,0,20"/>
+
+                            <TextBlock Text="2. Select File" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <Grid Margin="0,0,0,20">
+                                <TextBox Text="{Binding FilePath}" IsReadOnly="True" Height="40" Padding="10,0" VerticalContentAlignment="Center"/>
+                                <Button Content="Browse" Command="{Binding BrowseCommand}" HorizontalAlignment="Right" Width="85" Margin="5"/>
+                            </Grid>
+
+                            <TextBlock Text="3. Upload Branch" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <TextBox Text="{Binding UploadBranch}" MaxLength="5" Height="40" Padding="10,0" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
+
+                            <TextBlock Text="4. Hashing Mechanism" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <ComboBox SelectedValue="{Binding SelectedAlgorithm}" SelectedValuePath="Content" Height="40" Margin="0,0,0,30">
+                                <ComboBoxItem Content="SHA256"/>
+                                <ComboBoxItem Content="MD5"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Button Row -->
+                        <UniformGrid Columns="2" Margin="0,0,0,20">
+                            <Button Content="GENERATE SECURE HASH" Command="{Binding GenerateCommand}" 
+                                    IsEnabled="{Binding CanInput}" Style="{StaticResource YonoButton}" Margin="0,0,10,0"/>
+                            <Button Content="RESET FORM" Command="{Binding ResetCommand}" 
+                                    IsEnabled="{Binding CanReset}" Style="{StaticResource YonoButton}" Margin="10,0,0,0" Background="#6c757d"/>
+                        </UniformGrid>
+
+                        <!-- Result Display -->
+                        <Border Visibility="{Binding ResultHash, Converter={StaticResource StringToVis}}" 
+                                Background="White" CornerRadius="12" Padding="25" BorderBrush="#292075" BorderThickness="1,1,1,6">
+                            <StackPanel>
+                                <DockPanel LastChildFill="False" Margin="0,0,0,15">
+                                    <TextBlock Text="SUCCESSFUL GENERATION" Foreground="#28A745" FontWeight="Bold"/>
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                        <Button Content="[ Clipboard Copy ]" Command="{Binding CopyClipboardCommand}" Style="{StaticResource LinkButtonStyle}" Margin="0,0,15,0"/>
+                                        <Button Content="[ Save As ]" Command="{Binding SaveFileCommand}" Style="{StaticResource LinkButtonStyle}" Margin="0,0,15,0"/>
+                                        <Button Content="[ Print Report ]" Command="{Binding PrintReportCommand}" Style="{StaticResource LinkButtonStyle}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="180"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Security PassKey:" Grid.Row="0" Foreground="Gray"/>
+                                    <Border Grid.Row="0" Grid.Column="1" Background="#292075" CornerRadius="4" Padding="10,4" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding PassKey}" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                                    </Border>
+                                    <TextBlock Text="File Hash Value:" Grid.Row="1" Foreground="Gray" Margin="0,15,0,0"/>
+                                    <TextBox Text="{Binding ResultHash}" Grid.Row="1" Grid.Column="1" IsReadOnly="True" TextWrapping="Wrap" Background="#F4F4F4" Padding="10" Margin="0,15,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+                <ProgressBar Grid.Row="1" Height="4" IsIndeterminate="True" Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVis}}" Foreground="#662D91"/>
+            </Grid>
+        </DataTemplate>
+
+        <!-- 2. DATA TEMPLATE: MANAGE CATEGORIES -->
+        <DataTemplate DataType="{x:Type vm:ManageCategoriesViewModel}">
+            <Grid Margin="30">
+                <!-- Unlock Screen Overlay -->
+                <Border Background="White" Panel.ZIndex="10" Visibility="{Binding IsAuthenticated, Converter={StaticResource InverseBoolToVis}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="ADMIN ACCESS REQUIRED" FontSize="18" FontWeight="Bold" Foreground="#292075" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+                        <PasswordBox x:Name="AdminPass" Width="250" Height="35" VerticalContentAlignment="Center"/>
+                        <Button Content="Unlock" Command="{Binding DataContext.SwitchTabCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                                CommandParameter="{Binding ElementName=AdminPass}" Style="{StaticResource YonoButton}" Width="120" Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Management UI -->
+                <Grid Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVis}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Add New Category" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <UniformGrid Columns="3">
+                            <TextBox Tag="Code" Text="{Binding NewCode}" Margin="0,0,10,0" Padding="5"/>
+                            <TextBox Tag="Description" Text="{Binding NewDescription}" Margin="0,0,10,0" Padding="5"/>
+                            <Button Content="Add Category" Command="{Binding AddCommand}" Style="{StaticResource YonoButton}" Height="35"/>
+                        </UniformGrid>
+                    </StackPanel>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Categories}" AutoGenerateColumns="False" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="100"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
+                            <DataGridTemplateColumn Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Remove" Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                          CommandParameter="{Binding}" Background="#DC3545" Foreground="White" BorderThickness="0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Margin="50">
+        <Border Style="{StaticResource GlassCard}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Margin="40,30,40,0">
+                    <TextBlock Text="SBI" FontSize="40" FontWeight="ExtraBold" Foreground="#292075"/>
+                    <TextBlock Text="Bancs Secure Hash Tool" FontSize="14" Foreground="Gray" Margin="4,-8,0,0"/>
+                </StackPanel>
+                <TabControl ItemsSource="{Binding TabItems}" SelectedItem="{Binding SelectedTab}" Grid.Row="1" Margin="35,20,35,30" Background="Transparent" BorderThickness="0">
+                    <TabControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Header}" FontSize="16" Padding="10,0"/>
+                        </DataTemplate>
+                    </TabControl.ItemTemplate>
+                </TabControl>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
