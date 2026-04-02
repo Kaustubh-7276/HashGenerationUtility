@@ -1,3 +1,4 @@
+using BancsHashGenrator.Services;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -6,8 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace BancsHashGenrator.ViewModels
 {
@@ -120,33 +119,13 @@ namespace BancsHashGenrator.ViewModels
             SaveFileCommand = new RelayCommand(_ =>
             {
                 if (string.IsNullOrEmpty(ResultHash)) return;
-                var sfd = new SaveFileDialog { Filter = "Text files (*.txt)|*.txt", FileName = NewFileName };
-                if (sfd.ShowDialog() == true)
-                {
-                    try
-                    {
-                        File.WriteAllText(sfd.FileName, File.ReadAllText(FilePath));
-                        MessageBox.Show("File saved successfully!");
-                    }
-                    catch (Exception ex) { MessageBox.Show("Save error: " + ex.Message); }
-                }
+                SaveHashFile();
             });
 
             PrintReportCommand = new RelayCommand(_ =>
             {
                 if (string.IsNullOrEmpty(ResultHash)) return;
-                PrintHashReport();
-                //PrintDialog pd = new PrintDialog();
-                //if (pd.ShowDialog() == true)
-                //{
-                //    FlowDocument doc = new FlowDocument(new Paragraph(new Run("SBI FILE HASH REPORT"))) { PagePadding = new Thickness(50) };
-                //    doc.Blocks.Add(new Paragraph(new Run($"Date: {DateTime.Now:dd-MMM-yyyy HH:mm:ss}")));
-                //    doc.Blocks.Add(new Paragraph(new Run($"Original File: {Path.GetFileName(FilePath)}")));
-                //    doc.Blocks.Add(new Paragraph(new Run($"Branch Code: {UploadBranch}")));
-                //    doc.Blocks.Add(new Paragraph(new Run($"Security PassKey: {PassKey}")) { FontWeight = FontWeights.Bold });
-                //    doc.Blocks.Add(new Paragraph(new Run($"Hash Value: {ResultHash}")) { Foreground = System.Windows.Media.Brushes.DarkBlue });
-                //    pd.PrintDocument(((IDocumentPaginatorSource)doc).DocumentPaginator, "Hash Report");
-                //}
+                PrintReport();
             });
 
             ResetCommand = new RelayCommand(_ =>
@@ -165,47 +144,34 @@ namespace BancsHashGenrator.ViewModels
             OnPropertyChanged(nameof(CanReset));
         }
 
-        private void PrintHashReport()
+        private void SaveHashFile()
         {
-            PrintDialog pd = new PrintDialog();
-            if (pd.ShowDialog() == true)
+            var sfd = new SaveFileDialog { Filter = "Text files (*.txt)|*.txt", FileName = NewFileName };
+            if (sfd.ShowDialog() == true)
             {
-                // Container
-                Grid reportGrid = new Grid { Width = 793, Height = 1122, Background = Brushes.White, Margin = new Thickness(40) };
-
-                // 1. CONFIDENTIAL Watermark
-                TextBlock watermark = new TextBlock
+                try
                 {
-                    Text = "CONFIDENTIAL",
-                    FontSize = 80,
-                    FontWeight = FontWeights.Bold,
-                    Foreground = new SolidColorBrush(Color.FromArgb(15, 0, 0, 0)),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    RenderTransform = new RotateTransform(-45),
-                    RenderTransformOrigin = new Point(0.5, 0.5)
-                };
-                reportGrid.Children.Add(watermark);
-
-                // 2. Content
-                StackPanel content = new StackPanel();
-                content.Children.Add(new TextBlock { Text = "FILE HASH REPORT", FontSize = 22, FontWeight = FontWeights.Bold, Foreground = Brushes.DarkBlue });
-                content.Children.Add(new TextBlock { Text = "State Bank of India - Confidential", FontSize = 10, Margin = new Thickness(0, 0, 0, 30) });
-
-                // Add Data Rows (File Name, Branch, Passkey, etc.)
-                // ... (Use TextBlocks for OrignalFileName, GeneratedFileName, etc.)
-
-                // 3. Signature Area
-                content.Children.Add(new TextBlock { Text = "Authorised Official Signature", HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 50, 0, 0), FontWeight = FontWeights.Bold });
-
-                // 4. Footer
-                content.Children.Add(new TextBlock { Text = $"TELLER ID: 2413166 | PRINT REPORT Timestamp: {DateTime.Now:dd-MMM-yyyy HH:mm:ss}", FontSize = 9, Foreground = Brushes.Gray, Margin = new Thickness(0, 20, 0, 0) });
-
-                reportGrid.Children.Add(content);
-                pd.PrintVisual(reportGrid, "SBI Hash Report");
+                    File.WriteAllText(sfd.FileName, File.ReadAllText(FilePath));
+                    MessageBox.Show("File saved successfully!");
+                }
+                catch (Exception ex) { MessageBox.Show("Save error: " + ex.Message); }
             }
         }
+        private void PrintReport()
+        {
+            var builder = new ReportBuilder();
 
+            var pages = builder.BuildPages(
+                FilePath,
+                NewFileName,
+                UploadBranch,
+                PassKey,
+                ResultHash
+            );
+
+            var pdf = new PdfService();
+            pdf.GeneratePdf(pages);
+        }
 
         // 5. Core Logic (The Generate Method)
         private async Task ProcessHashAsync()
@@ -257,15 +223,30 @@ namespace BancsHashGenrator.ViewModels
 
                     // Handle Local Repository
                     NewFileName = $"{fileNameOnly}-[{ResultHash}].txt";
-                    if (!Directory.Exists(RepoPath)) Directory.CreateDirectory(RepoPath);
-                    File.Copy(FilePath, Path.Combine(RepoPath, NewFileName), true);
+                    //if (!Directory.Exists(RepoPath)) Directory.CreateDirectory(RepoPath);
+                    //File.Copy(FilePath, Path.Combine(RepoPath, NewFileName), true);
+
+                    IsProcessing = false;
+                    RefreshButtonStates();
+
+                    var sfd = new SaveFileDialog { Filter = "Text files (*.txt)|*.txt", FileName = NewFileName };
+                    if (sfd.ShowDialog() == true)
+                    {
+                        try
+                        {
+                            File.WriteAllText(sfd.FileName, File.ReadAllText(FilePath));
+                            MessageBox.Show("File saved successfully!");
+                        }
+                        catch (Exception ex) { MessageBox.Show("Save error: " + ex.Message); }
+                    }
+
                 });
             }
             catch (Exception ex) { MessageBox.Show("Error: " + ex.Message); }
             finally
             {
-                IsProcessing = false;
-                RefreshButtonStates();
+                //IsProcessing = false;
+                //RefreshButtonStates();
             }
         }
 
