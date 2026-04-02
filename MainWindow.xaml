@@ -155,6 +155,12 @@
                             <TextBlock Text="{Binding Header}" FontSize="16" Padding="10,0"/>
                         </DataTemplate>
                     </TabControl.ItemTemplate>
+                    <!-- 🔥 THIS IS MISSING -->
+                    <TabControl.ContentTemplate>
+                        <DataTemplate>
+                            <ContentControl Content="{Binding}" />
+                        </DataTemplate>
+                    </TabControl.ContentTemplate>
                 </TabControl>
             </Grid>
         </Border>
