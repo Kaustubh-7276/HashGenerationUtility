@@ -1,0 +1,152 @@
+The name "MainViewModel" does not exist in the namespace "clr-namespace:BancsHashGenrator.ViewModels".
+Non-nullable property 'NewCode' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+Non-nullable property 'NewDescription' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+The name "SingleHashViewModel" does not exist in the namespace "clr-namespace:BancsHashGenrator.ViewModels".
+The name "BulkHashViewModel" does not exist in the namespace "clr-namespace:BancsHashGenrator.ViewModels".
+The name "AuditLogViewModel" does not exist in the namespace "clr-namespace:BancsHashGenrator.ViewModels".
+The name "ManageCategoriesViewModel" does not exist in the namespace "clr-namespace:BancsHashGenrator.ViewModels".
+There is no argument given that corresponds to the required parameter 'sharedCategories' of 'ManageCategoriesViewModel.ManageCategoriesViewModel(ObservableCollection<UploadCategory>)'
+Non-nullable property 'Header' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+
+<Window x:Class="BancsHashGenrator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BancsHashGenrator"
+        xmlns:vm="clr-namespace:BancsHashGenrator.ViewModels" 
+        mc:Ignorable="d"
+        Title="Bancs Hash Generator" Height="750" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource YonoGradient}">
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <!-- ================= SINGLE HASH (YOUR ORIGINAL) ================= -->
+        <DataTemplate DataType="{x:Type vm:SingleHashViewModel}">
+            <Grid Margin="35,20">
+                <ScrollViewer>
+                    <StackPanel>
+
+                        <TextBlock Text="Select File"/>
+                        <TextBox Text="{Binding FilePath}" IsReadOnly="True"/>
+
+                        <Button Content="Browse" Command="{Binding BrowseCommand}" Style="{StaticResource YonoButton}"/>
+
+                        <Button Content="Generate Hash" Command="{Binding GenerateCommand}" Style="{StaticResource YonoButton}"/>
+
+                        <TextBox Text="{Binding ResultHash}" TextWrapping="Wrap" Margin="0,10"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </DataTemplate>
+
+        <!-- ================= BULK HASH ================= -->
+        <DataTemplate DataType="{x:Type vm:BulkHashViewModel}">
+            <Grid Margin="35,20">
+
+                <StackPanel>
+
+                    <TextBlock Text="Bulk Hash Generation"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="0,0,0,20"/>
+
+                    <Button Content="Select Files"
+                            Command="{Binding BrowseCommand}"
+                            Style="{StaticResource YonoButton}"
+                            Width="200"/>
+
+                    <Border Margin="0,10"
+                            BorderBrush="#292075"
+                            BorderThickness="1"
+                            Padding="10">
+
+                        <ScrollViewer Height="150">
+                            <ItemsControl ItemsSource="{Binding Files}"/>
+                        </ScrollViewer>
+
+                    </Border>
+
+                    <Button Content="Generate ZIP"
+                            Command="{Binding GenerateCommand}"
+                            Style="{StaticResource YonoButton}"
+                            Width="200"/>
+
+                </StackPanel>
+
+            </Grid>
+        </DataTemplate>
+
+        <!-- ================= AUDIT ================= -->
+        <DataTemplate DataType="{x:Type vm:AuditLogViewModel}">
+            <Grid Margin="30">
+
+                <StackPanel>
+
+                    <TextBlock Text="Audit Logs"
+                               FontSize="18"
+                               FontWeight="Bold"/>
+
+                    <ListBox ItemsSource="{Binding Logs}"
+                             Margin="0,10"
+                             FontFamily="Consolas"/>
+
+                </StackPanel>
+
+            </Grid>
+        </DataTemplate>
+
+        <!-- ================= MANAGE CATEGORY (KEEP SIMPLE) ================= -->
+        <DataTemplate DataType="{x:Type vm:ManageCategoriesViewModel}">
+            <TextBlock Text="Manage Categories Screen"/>
+        </DataTemplate>
+
+    </Window.Resources>
+
+    <!-- ================= MAIN UI ================= -->
+    <Grid Margin="50">
+
+        <Border Style="{StaticResource GlassCard}">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- HEADER -->
+                <StackPanel Margin="30">
+                    <Image Source="pack://application:,,,/Resources/SBI.png" Height="50"/>
+                    <TextBlock Text="Bancs Secure Hash Tool"/>
+                </StackPanel>
+
+                <!-- TABS -->
+                <TabControl Grid.Row="1"
+                            ItemsSource="{Binding TabItems}"
+                            SelectedItem="{Binding SelectedTab}">
+
+                    <TabControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Header}" FontSize="14"/>
+                        </DataTemplate>
+                    </TabControl.ItemTemplate>
+
+                    <TabControl.ContentTemplate>
+                        <DataTemplate>
+                            <ContentControl Content="{Binding}"/>
+                        </DataTemplate>
+                    </TabControl.ContentTemplate>
+
+                </TabControl>
+
+            </Grid>
+
+        </Border>
+
+    </Grid>
+</Window>
+
+
